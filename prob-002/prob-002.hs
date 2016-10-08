@@ -1,5 +1,5 @@
 calcValue :: Integer -> Integer
-calcValue below = sum $ filter even $ takeWhile (<= below) fib 
+calcValue limit = sum $ filter even $ takeWhile (<= limit) fib 
 
 fib :: [Integer]
 fib = 
