@@ -5,8 +5,8 @@
 calcValue :: Integer -> Integer
 calcValue num = 
     let groupedFactors = expand [factor num]
-        factors = concat $ map (\(a,b) -> a : [b]) groupedFactors in
-        maximum factors
+        factors = concat $ map (\(a,b) -> a : [b]) groupedFactors 
+    in  maximum factors
 
 expand :: [(Integer, Integer)] -> [(Integer, Integer)]
 expand ((1,x):xs) = (1,x) : (expand xs)
@@ -21,13 +21,13 @@ factor num =
         cGenerate i = ((val + i) * (val + i) - num) : cGenerate (i + 1) 
         b = head $ dropWhile (not . isSquare . fromIntegral) $ cGenerate 0 
         bs = ceiling $ sqrt $ fromIntegral b
-        as = ceiling $ sqrt $ abs $ fromIntegral (b + num) in
-        (as - bs, as + bs)
+        as = ceiling $ sqrt $ abs $ fromIntegral (b + num) 
+    in  (as - bs, as + bs)
 
 isSquare :: Integer -> Bool
 isSquare a =
-    let c = sqrt $ fromIntegral a in
-        (ceiling c) == (floor c)
+    let c = sqrt $ fromIntegral a 
+    in  (ceiling c) == (floor c)
 
 main = do
     putStrLn $ show $ calcValue 600851475143
