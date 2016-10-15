@@ -53,7 +53,6 @@ calcValue num str =
         strLength = length str
         candidates = filter (\x -> length x == num) $ map getCandate [1..strLength]
     in  maximum $ map digitsProduct candidates
-    --in  snd $ maximumBy (\x y -> compare (snd x) (snd y)) $ map (\x -> (x, digitsProduct x)) candidates
 
 digitsProduct :: String -> Integer
 digitsProduct str = product $ map (fromIntegral . digitToInt) str
