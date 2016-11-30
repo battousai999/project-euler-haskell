@@ -16,14 +16,14 @@
 import Data.List (permutations)
 
 pandigitals :: [Integer]
-pandigitals = map read $ filter (\x -> x !! 0 /= '0') $ permutations "0123456789"
+pandigitals = map read $ filter (\x -> head x /= '0') $ permutations "0123456789"
 
 isSubStringDivisible :: Integer -> Bool
 isSubStringDivisible num =
     let applicablePrimes = [2, 3, 5, 7, 11, 13, 17]
-        sub x = read $ (take 3) . (drop (x-1)) $ show num
-    in  all (== True) $ map (\x -> (sub (x+1)) `mod` (applicablePrimes !! (x-1)) == 0) [1..7]
+        sub x = read $ take 3 . drop (x - 1) $ show num
+    in  all (== True) $ map (\x -> sub (x + 1) `mod` (applicablePrimes !! (x - 1)) == 0) [1..7]
 
 main = do
     let value = sum $ filter isSubStringDivisible pandigitals
-    putStrLn $ show value
+    print value
