@@ -11,14 +11,17 @@ import Data.List (find, sortBy)
 import Data.Maybe (fromMaybe)
 import qualified Data.Set as Set
 
-limit :: Integer
-limit = 30000
+-- Cap the list of pentagonal numbers so that we can create a Set from the 
+-- list (to make isPentagonalNumber fast).  Note that using a Set for this
+-- is not particularly memory-friendly.
+listSize :: Integer
+listSize = 10000000
 
 pentagonalNumber :: Integer -> Integer
 pentagonalNumber num = (num * (3 * num - 1)) `div` 2
 
 pentagonalNumbers :: [Integer]
-pentagonalNumbers = map pentagonalNumber [1..limit]
+pentagonalNumbers = map pentagonalNumber [1..listSize]
 
 pentagonalSet :: Set.Set Integer
 pentagonalSet = Set.fromDistinctAscList pentagonalNumbers
@@ -32,67 +35,30 @@ candidates limit num =
         isSpecial x = 
             let p_j = pentagonalNumber x
             in  isPentagonalNumber (p_k + p_j) && isPentagonalNumber (p_k - p_j)
+        -- Use the 'limit' to determine a 'lowIndex' that skips a lot of work (don't
+        -- call isSpecial on values whose pentagonal difference with 'num' would be
+        -- larger than 'limit' 
         isUnderLimit x = p_k - pentagonalNumber x < limit
         maybeLowIndex = if limit == 1 then Just 1 else find (not . isUnderLimit) [(num - 1), (num - 2)..1]
         lowIndex = fromMaybe 1 maybeLowIndex
     in  filter isSpecial [lowIndex..(num - 1)]
 
+calcValue :: (Integer, Integer) -> Integer -> Maybe (Integer, Integer)
+calcValue (x, y) limit =
+    let result = find (not . null . snd) $ map (\x -> (x, sortBy (flip compare) (candidates limit x))) [(x + 1)..listSize]
+    in  case result of
+            Nothing -> Just (x, y)
+            Just (x', y':_) ->
+                -- Use this solution (i.e., x' and y') to determine a new limit and recursively
+                -- find the next potential solution
+                let newLimit = pentagonalNumber x' - pentagonalNumber y'
+                in  calcValue (x', y') newLimit
+
 main = do
-    let (firstNum, firstCandidate:_) = head $ filter (not . null . snd) $ map (\x -> (x, sortBy (flip compare) (candidates 1 x))) [1..limit]
-        
-    print (firstNum, firstCandidate)
-
-
-
-
-
-
-
--- pentagonalNumber :: Integer -> Integer
--- pentagonalNumber num = (num * (3 * num - 1)) `div` 2
-
--- pentagonalNumbers :: [Integer]
--- pentagonalNumbers = map pentagonalNumber [1..1000000]
-
--- isPentagonalNumber2 :: Integer -> Bool
--- isPentagonalNumber2 num 
---     | num <= 0 = False
---     | otherwise =
---         let result = find (>= num) pentagonalNumbers
---         in  case result of
---                 Nothing -> False
---                 Just x  -> x == num
-
--- (^!) :: Num a => a -> Int -> a
--- (^!) x n = x^n
-
--- squareRoot :: Integer -> Integer
--- squareRoot 0 = 0
--- squareRoot 1 = 1
--- squareRoot n =
---     let twopows = iterate (^!2) 2
---         (lowerRoot, lowerN) = last $ takeWhile ((n>=) . snd) $ zip (1:twopows) twopows
---         newtonStep x = div (x + div n x) 2
---         iters = iterate newtonStep (squareRoot (div n lowerN) * lowerRoot)
---         isRoot r = r^!2 <= n && n < (r+1)^!2
---     in  head $ dropWhile (not . isRoot) iters                
-
--- isPentagonalNumber :: Integer -> Bool
--- isPentagonalNumber num
---     | num <= 0 = False
---     | otherwise =
---         let c = (squareRoot (num * 24 + 1) + 1) `div` 6
---         in  pentagonalNumber c == num                 
-
-
--- -- using this is probably going to take too long...
--- candidates :: Integer -> [Integer]
--- candidates num =
---     let p_k = pentagonalNumber num
---         isSpecial x = 
---             let p_j = pentagonalNumber x
---             in  isPentagonalNumber2 (p_k + p_j) && isPentagonalNumber2 (p_k - p_j)
---     in  filter isSpecial [1..(num - 1)]
-            
--- main = do
---     print $ candidates 10000
+    let results = calcValue (1, 1) 1
+        displayResults = case results of
+                            Nothing -> "No result"
+                            Just (x, y) ->
+                                let diff = pentagonalNumber x - pentagonalNumber y
+                                in  show diff
+    putStrLn displayResults
