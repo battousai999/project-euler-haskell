@@ -4,15 +4,14 @@ import Data.List (nub)
 
 calcValue :: Integer -> Integer
 calcValue num = 
-    let groupedFactors = expand [factor num]
+    let groupedFactors = expand $ factor num
         factors = nub $ concatMap (\(a,b) -> a : [b]) groupedFactors 
     in  maximum factors
 
-expand :: [(Integer, Integer)] -> [(Integer, Integer)]
-expand ((1,x):xs) = (1,x) : expand xs
-expand ((x,1):xs) = (x,1) : expand xs
-expand ((a,b):xs) = expand [factor a] ++ (expand [factor b] ++ expand xs)
-expand [] = []
+expand :: (Integer, Integer) -> [(Integer, Integer)]
+expand (1, x) = [(1, x)]
+expand (x, 1) = [(x, 1)]
+expand (a, b) = expand (factor a) ++ expand (factor b)
 
 -- Fermat factorization
 factor :: Integer -> (Integer, Integer)
@@ -29,5 +28,4 @@ isSquare a =
     let c = sqrt $ fromIntegral a 
     in  ceiling c == floor c
 
-main = do
-    putStrLn $ show $ calcValue 600851475143
+main = print $ calcValue 600851475143
